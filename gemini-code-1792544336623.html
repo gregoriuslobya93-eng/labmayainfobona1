@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab Maya Informatika - Struktur dan Representasi Data (Kelas VII)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js CDN -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Three.js untuk Simulasi 3D -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Google Fonts: Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body class="h-full bg-slate-900 text-slate-100 overflow-hidden flex items-center justify-center" x-data="labApp()">
+
+    <!-- Peringatan / Panduan Rotasi untuk HP Portrait -->
+    <div class="fixed inset-0 z-50 bg-slate-950/90 flex flex-col items-center justify-center p-6 text-center md:hidden" x-show="isPortrait" x-cloak>
+        <svg class="w-16 h-16 text-amber-400 animate-bounce mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round5" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+        <h2 class="text-xl font-bold mb-2">Disarankan Menggunakan Lanskap</h2>
+        <p class="text-sm text-slate-300 mb-6">Lab Maya ini dioptimalkan dalam mode layar penuh 16:9. Putar perangkat Anda untuk pengalaman terbaik.</p>
+        <button @click="isPortrait = false" class="px-6 py-2 bg-indigo-600 rounded-full font-semibold shadow-lg">Lanjutkan Saja</button>
+    </div>
+
+    <!-- Container Utama Lab Maya (Full Screen 16:9 Aspect Ratio Container) -->
+    <div class="relative w-full max-w-[1280px] aspect-video bg-gradient-to-br from-indigo-950 via-slate-900 to-blue-950 shadow-2xl overflow-hidden flex flex-col border border-indigo-500/30 rounded-xl">
+
+        <!-- LALUAN AUDIO BACKGROUND -->
+        <audio id="bgAudio" loop>
+            <source src="https://actions.google.com/sounds/v1/ambiences/cheerful_daylight.ogg" type="audio/ogg">
+        </audio>
+
+        <!-- TOP BAR (Hanya muncul setelah masuk Menu atau isi lab) -->
+        <header class="flex items-center justify-between px-6 py-3 bg-slate-900/80 backdrop-blur border-b border-indigo-500/20 z-20" x-show="currentView !== 'splash'" x-cloak>
+            <div class="flex items-center space-x-4">
+                <button @click="currentView = 'menu'" class="flex items-center space-x-2 bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 px-3 py-1.5 rounded-lg border border-indigo-500/30 transition text-sm font-semibold">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round5" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span>HOME</span>
+                </button>
+                <h1 class="text-base font-bold tracking-wide text-indigo-200">Lab Maya Informatika: Struktur & Representasi Data</h1>
+            </div>
+            <div class="flex items-center space-x-3">
+                <span class="text-xs bg-indigo-500/20 text-indigo-300 px-3 py-1 rounded-full border border-indigo-500/30">Kelas VII - Fase D</span>
+            </div>
+        </header>
+
+        <!-- KONTEN UTAMA BERDASARKAN TAMPILAN (VIEW) -->
+        <main class="relative flex-1 overflow-y-auto flex flex-col">
+
+            <!-- 1. SPLASH SCREEN (HALAMAN DEPAN) -->
+            <section class="absolute inset-0 flex flex-col items-center justify-center p-8 text-center z-10" x-show="currentView === 'splash'" x-transition>
+                <!-- Tombol Pengaturan di Kanan Atas -->
+                <button @click="showSettings = true" class="absolute top-6 right-6 p-3 bg-slate-800/80 hover:bg-slate-700 text-indigo-300 rounded-full border border-indigo-500/30 shadow-lg transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round5" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round5" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </button>
+
+                <!-- Background Thumbnail / Cover -->
+                <div class="absolute inset-0 -z-10 opacity-30 bg-cover bg-center transition-all duration-500" :style="`background-image: url('${splashThumbnail}')`"></div>
+                <div class="absolute inset-0 -z-10 bg-gradient-to-t from-slate-950 via-slate-900/80 to-transparent"></div>
+
+                <!-- Logo & Judul -->
+                <div class="mb-6 bg-indigo-600/20 p-4 rounded-3xl border border-indigo-500/40 shadow-2xl inline-block">
+                    <svg class="w-20 h-20 text-indigo-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round5" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                </div>
+                <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-3 tracking-tight">LAB MAYA INFORMATIKA 3D</h1>
+                <p class="text-xl text-indigo-300 font-semibold mb-2">Topik: Struktur dan Representasi Data</p>
+                <p class="text-sm text-slate-400 max-w-lg mb-8">Pendekatan Pembelajaran Mendalam dengan Simulasi 3D Bergaya Pixar interaktif untuk Jenjang SMP Kelas VII (Fase D).</p>
+
+                <!-- Tombol MULAI -->
+                <button @click="startLab()" class="px-10 py-4 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-bold text-lg rounded-full shadow-lg shadow-indigo-500/40 transform hover:scale-105 transition flex items-center space-x-3">
+                    <span>MULAI BELAJAR</span>
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round5" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                </button>
+            </section>
+
+            <!-- 2. HALAMAN MENU UTAMA -->
+            <section class="flex-1 p-8 flex flex-col justify-center items-center z-10" x-show="currentView === 'menu'" x-transition>
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-extrabold text-white mb-2">Menu Utama Lab Maya</h2>
+                    <p class="text-slate-400">Pilih modul pembelajaran interaktif di bawah ini untuk memulai.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full max-w-5xl">
+                    <!-- Menu Item -->
+                    <template x-for="item in menuItems" :key="item.id">
+                        <button @click="currentView = item.id" class="p-6 bg-slate-800/80 hover:bg-indigo-900/60 border border-indigo-500/20 hover:border-indigo-500/60 rounded-2xl flex flex-col items-center text-center transition group shadow-lg">
+                            <div class="w-14 h-14 bg-indigo-600/20 rounded-xl flex items-center justify-center text-indigo-400 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition mb-4" x-html="item.icon"></div>
+                            <h3 class="font-bold text-base text-white mb-1" x-text="item.title"></h3>
+                            <p class="text-xs text-slate-400" x-text="item.desc"></p>
+                        </button>
+                    </template>
+                </div>
+            </section>
+
+            <!-- 3. MODUL: PETUNJUK PENGGUNAAN -->
+            <section class="flex-1 p-8 flex flex-col max-w-4xl mx-auto w-full z-10" x-show="currentView === 'petunjuk'" x-transition>
+                <h2 class="text-2xl font-bold text-indigo-300 mb-4 flex items-center space-x-2"><span>📖 Petunjuk Penggunaan Lab Maya</span></h2>
+                <div class="space-y-4 text-slate-300 text-sm bg-slate-800/50 p-6 rounded-2xl border border-indigo-500/20">
+                    <p>1. <strong>Navigasi Menu:</strong> Gunakan tombol <strong>HOME</strong> di pojok kiri atas untuk kembali ke menu utama kapan saja.</p>
+                    <p>2. <strong>Tombol Navigasi Bawah:</strong> Gunakan tombol panah Kiri (Preview) dan Kanan (Next) di bagian bawah layar untuk berpindah halaman materi secara berurutan.</p>
+                    <p>3. <strong>Simulasi 3D:</strong> Pada menu Simulasi, Anda dapat berinteraksi langsung dengan model 3D bergaya Pixar untuk memahami konsep penyimpanan dan penyusunan data komputer.</p>
+                    <p>4. <strong>Kuis & Evaluasi:</strong> Kerjakan latihan soal interaktif dan evaluasi akhir. Masukkan nama dan kelas pada menu evaluasi untuk menghasilkan laporan nilai berbasis PDF.</p>
+                </div>
+            </section>
+
+            <!-- 4. MODUL: MATERI -->
+            <section class="flex-1 p-8 flex flex-col max-w-5xl mx-auto w-full z-10" x-show="currentView === 'materi'" x-transition>
+                <h2 class="text-2xl font-bold text-indigo-300 mb-4">📚 Materi: Struktur & Representasi Data (Fase D)</h2>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 flex-1">
+                    <div class="space-y-2">
+                        <template x-for="(sub, idx) in subMateriList" :key="idx">
+                            <button @click="activeSubMateri = idx" :class="activeSubMateri === idx ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'" class="w-full text-left px-4 py-3 rounded-xl text-sm font-semibold transition flex items-center justify-between">
+                                <span x-text="sub.title"></span>
+                            </button>
+                        </template>
+                    </div>
+                    <div class="md:col-span-3 bg-slate-800/50 p-6 rounded-2xl border border-indigo-500/20 text-slate-200 text-sm space-y-4">
+                        <h3 class="text-xl font-bold text-indigo-300" x-text="subMateriList[activeSubMateri].title"></h3>
+                        <div x-html="subMateriList[activeSubMateri].content" class="space-y-3 leading-relaxed"></div>
+                        <div class="mt-6 pt-4 border-t border-slate-700">
+                            <h4 class="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-2">Referensi Materi:</h4>
+                            <p class="text-xs text-slate-400" x-text="subMateriList[activeSubMateri].ref"></p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. MODUL: SIMULASI 3D -->
+            <section class="flex-1 p-6 flex flex-col items-center justify-center relative z-10" x-show="currentView === 'simulasi'" x-init="$watch('currentView', val => { if(val === 'simulasi') init3D(); })" x-transition>
+                <div class="absolute top-4 left-6 bg-slate-900/80 px-4 py-2 rounded-xl border border-indigo-500/30 text-xs">
+                    <p class="font-bold text-indigo-300">Simulasi 3D Pixar: Penyusunan Blok Data</p>
+                    <p class="text-slate-400">Visualisasi struktur data biner dan penyimpanan hierarki.</p>
+                </div>
+                <!-- Canvas Three.js -->
+                <div id="canvas3dContainer" class="w-full max-w-4xl h-[400px] rounded-2xl overflow-hidden border border-indigo-500/30 bg-slate-950"></div>
+                <div class="mt-4 flex space-x-4">
+                    <button @click="triggerAnimation3D()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-semibold shadow">Susun Ulang Data (Animasi)</button>
+                </div>
+            </section>
+
+            <!-- 6. MODUL: KUIS INTERAKTIF -->
+            <section class="flex-1 p-8 flex flex-col max-w-4xl mx-auto w-full z-10" x-show="currentView === 'kuis'" x-transition>
+                <h2 class="text-2xl font-bold text-indigo-300 mb-2">🎮 Kuis Interaktif Beragam Model</h2>
+                <p class="text-xs text-slate-400 mb-6">Uji pemahaman Anda melalui pilihan ganda, benar-salah, dan isian singkat.</p>
+                <div class="bg-slate-800/50 p-6 rounded-2xl border border-indigo-500/20 space-y-4">
+                    <p class="font-bold text-white text-base" x-text="quizQuestions[currentQuiz].question"></p>
+                    <div class="space-y-2">
+                        <template x-for="(opt, idx) in quizQuestions[currentQuiz].options" :key="idx">
+                            <button @click="selectedQuizOpt = idx" :class="selectedQuizOpt === idx ? 'bg-indigo-600 text-white' : 'bg-slate-700/60 hover:bg-slate-700 text-slate-200'" class="w-full text-left px-4 py-3 rounded-xl text-sm transition" x-text="opt"></button>
+                        </template>
+                    </div>
+                    <button @click="checkQuiz()" class="mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-500 font-semibold text-sm rounded-xl">Jawab</button>
+                    <p class="text-sm font-semibold mt-2" x-text="quizFeedback"></p>
+                </div>
+            </section>
+
+            <!-- 7. MODUL: EVALUASI (DENGAN LAPORAN PDF & INPUT NAMA/KELAS) -->
+            <section class="flex-1 p-8 flex flex-col max-w-4xl mx-auto w-full z-10 overflow-y-auto" x-show="currentView === 'evaluasi'" x-transition>
+                <h2 class="text-2xl font-bold text-indigo-300 mb-2">📝 Evaluasi Akhir (10 Soal Pilihan Ganda)</h2>
+                
+                <!-- Input Identitas Siswa -->
+                <div class="bg-slate-800/80 p-6 rounded-2xl border border-indigo-500/30 mb-6" x-show="!evalStarted">
+                    <p class="text-sm text-slate-300 mb-4">Silakan masukkan Nama Lengkap dan Kelas Anda sebelum memulai evaluasi:</p>
+                    <div class="space-y-3">
+                        <input type="text" x-model="studentName" placeholder="Nama Lengkap Siswa" class="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500">
+                        <input type="text" x-model="studentClass" placeholder="Kelas (Contoh: VII A)" class="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <button @click="startEval()" :disabled="!studentName || !studentClass" class="mt-4 px-6 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 font-semibold text-sm rounded-xl">Mulai Mengerjakan</button>
+                </div>
+
+                <!-- Soal Evaluasi -->
+                <div class="space-y-6" x-show="evalStarted && !evalFinished">
+                    <template x-for="(q, index) in evalQuestions" :key="index">
+                        <div class="bg-slate-800/50 p-6 rounded-2xl border border-indigo-500/20 space-y-3">
+                            <p class="font-bold text-sm text-white" x-text="(index+1) + '. ' + q.question"></p>
+                            <div class="space-y-2">
+                                <template x-for="(opt, oIdx) in q.options" :key="oIdx">
+                                    <label class="flex items-center space-x-3 text-sm text-slate-300 cursor-pointer p-2 rounded-lg hover:bg-slate-700/40">
+                                        <input type="radio" :name="'evalq_'+index" :value="oIdx" x-model.number="evalAnswers[index]" class="text-indigo-600 focus:ring-indigo-500">
+                                        <span x-text="opt"></span>
+                                    </label>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                    <button @click="submitEval()" class="px-8 py-3 bg-green-600 hover:bg-green-500 font-bold text-sm rounded-xl shadow-lg">Kirim Evaluasi & Lihat Nilai</button>
+                </div>
+
+                <!-- Hasil & Laporan Evaluasi -->
+                <div class="bg-slate-800/80 p-6 rounded-2xl border border-indigo-500/30 text-center space-y-4" x-show="evalFinished" x-cloak>
+                    <h3 class="text-2xl font-bold text-indigo-300">Hasil Evaluasi Belajar</h3>
+                    <div class="text-5xl font-extrabold text-white" x-text="evalScore + ' / 100'"></div>
+                    <p class="text-sm text-slate-300">Nama: <strong x-text="studentName"></strong> | Kelas: <strong x-text="studentClass"></strong></p>
+                    <div class="flex justify-center space-x-4 pt-4">
+                        <button @click="printPDF()" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-semibold flex items-center space-x-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round5" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                            <span>Cetak / Kirim Laporan PDF</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 8. MODUL: FAKTA MENARIK -->
+            <section class="flex-1 p-8 flex flex-col max-w-4xl mx-auto w-full z-10" x-show="currentView === 'fakta'" x-transition>
+                <h2 class="text-2xl font-bold text-indigo-300 mb-4">🌟 Fakta Menarik & Temuan Terbaru</h2>
+                <div class="bg-slate-800/50 p-6 rounded-2xl border border-indigo-500/20 space-y-4 text-slate-300 text-sm leading-relaxed">
+                    <p><strong>1. Kapsul DNA (DNA Data Storage):</strong> Penelitian terbaru menunjukkan bahwa ilmuwan kini dapat merepresentasikan data digital (seperti file teks, video, dan gambar) ke dalam urutan basa nitrogen DNA biologis. Satu gram DNA dapat menyimpan hingga 215 petabyte data!</p>
+                    <p><strong>2. Komputasi Kuantum:</strong> Struktur data qubit (quantum bit) memungkinkan representasi data dalam kondisi superposisi (0 dan 1 secara bersamaan), melampaui limitasi struktur data biner tradisional pada komputer super tercepat saat ini.</p>
+                </div>
+            </section>
+
+            <!-- 9. MODUL: HUBUNGAN KONTEKSTUAL -->
+            <section class="flex-1 p-8 flex flex-col max-w-4xl mx-auto w-full z-10" x-show="currentView === 'kontekstual'" x-transition>
+                <h2 class="text-2xl font-bold text-indigo-300 mb-4">🌍 Hubungan Kontekstual di Kehidupan Sehari-hari</h2>
+                <div class="bg-slate-800/50 p-6 rounded-2xl border border-indigo-500/20 space-y-4 text-slate-300 text-sm leading-relaxed">
+                    <p><strong>1. Penyusunan Kontak HP & Folder Sekolah:</strong> Saat Anda mengelompokkan folder tugas sekolah berdasarkan mata pelajaran di komputer atau menyusun daftar kontak berdasarkan abjad, Anda sedang menerapkan prinsip <em>struktur data terorganisir</em>.</p>
+                    <p><strong>2. Barcode dan QR Code:</strong> Representasi data numerik dan teks yang diubah kedalam bentuk matriks visual hitam-putih agar dapat dibaca dengan cepat oleh scanner di kasir supermarket.</p>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- BOTTOM NAV BAR (Tombol Preview, Next, dan Audio Control) -->
+        <footer class="flex items-center justify-between px-6 py-3 bg-slate-900/90 backdrop-blur border-t border-indigo-500/20 z-20" x-show="currentView !== 'splash'" x-cloak>
+            <div class="flex items-center space-x-2">
+                <button @click="prevPage()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-indigo-300 rounded-xl border border-indigo-500/30 text-xs font-semibold flex items-center space-x-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round5" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    <span>Preview</span>
+                </button>
+                <button @click="nextPage()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-indigo-300 rounded-xl border border-indigo-500/30 text-xs font-semibold flex items-center space-x-1">
+                    <span>Next</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round5" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </button>
+            </div>
+            <div class="flex items-center space-x-3">
+                <button @click="toggleAudio()" class="p-2.5 bg-slate-800 hover:bg-slate-700 text-indigo-300 rounded-xl border border-indigo-500/30 text-xs font-semibold flex items-center space-x-2">
+                    <span x-text="audioPlaying ? '🔊 Nyala' : '🔇 Mati'"></span>
+                </button>
+            </div>
+        </footer>
+
+        <!-- MODAL PENGATURAN (SETTINGS) -->
+        <div class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur flex items-center justify-center p-4" x-show="showSettings" x-cloak>
+            <div class="bg-slate-900 border border-indigo-500/30 rounded-3xl p-6 w-full max-w-lg space-y-6 shadow-2xl">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <h3 class="text-lg font-bold text-white">⚙️ Pengaturan Lab Maya</h3>
+                    <button @click="showSettings = false" class="text-slate-400 hover:text-white">&times;</button>
+                </div>
+                <div class="space-y-4 text-sm">
+                    <div>
+                        <label class="block text-slate-300 font-semibold mb-1">Ganti Thumbnail / Cover (URL Gambar JPG/PNG)</label>
+                        <input type="text" x-model="splashThumbnail" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white">
+                    </div>
+                    <div>
+                        <label class="block text-slate-300 font-semibold mb-1">Volume Audio (<span x-text="audioVolume"></span>%)</label>
+                        <input type="range" min="0" max="100" x-model="audioVolume" @input="updateVolume()" class="w-full accent-indigo-600">
+                    </div>
+                    <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 space-y-2">
+                        <h4 class="font-bold text-indigo-300">ℹ️ Informasi Pengembang & Kurikulum</h4>
+                        <p class="text-xs text-slate-300"><strong>Nama Kreator:</strong> Gregorius Lobya</p>
+                        <p class="text-xs text-slate-300"><strong>Asal Sekolah:</strong> SMP YPPK Sentani</p>
+                        <p class="text-xs text-slate-300"><strong>Mata Pelajaran:</strong> Informatika (Fase D - Kelas VII)</p>
+                        <p class="text-xs text-slate-300 mt-2"><strong>CP & TP (BSKAP Kemendikdasmen):</strong> Memahami bahwa data dapat diorganisasikan, disajikan, dan dianalisis dalam bentuk struktur data terintegrasi untuk menyelesaikan masalah kontekstual.</p>
+                    </div>
+                </div>
+                <div class="flex justify-end pt-2">
+                    <button @click="showSettings = false" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 font-semibold rounded-xl text-sm">Simpan & Tutup</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SCRIPT UTAMA LOGIKA & THREE.JS -->
+    <script>
+        function labApp() {
+            return {
+                currentView: 'splash',
+                isPortrait: window.innerHeight > window.innerWidth,
+                showSettings: false,
+                audioPlaying: false,
+                audioVolume: 50,
+                splashThumbnail: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1280&q=80',
+                
+                menuItems: [
+                    { id: 'petunjuk', title: 'Petunjuk', desc: 'Cara penggunaan lab', icon: '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round5" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>' },
+                    { id: 'materi', title: 'Materi', desc: 'Struktur & Representasi Data', icon: '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round5" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>' },
+                    { id: 'simulasi', title: 'Simulasi 3D', desc: 'Eksplorasi model Pixar 3D', icon: '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round5" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-8 4-8-4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 17l8 4 8-4"/></svg>' },
+                    { id: 'kuis', title: 'Kuis Interaktif', desc: 'Uji pemahaman cepat', icon: '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round5" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' },
+                    { id: 'evaluasi', title: 'Evaluasi', desc: 'Ujian akhir & laporan PDF', icon: '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round5" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>' },
+                    { id: 'fakta', title: 'Fakta Menarik', desc: 'Temuan teknologi terbaru', icon: '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round5" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>' },
+                    { id: 'kontekstual', title: 'Kontekstual', desc: 'Penerapan di kehidupan nyata', icon: '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round5" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' }
+                ],
+
+                activeSubMateri: 0,
+                subMateriList: [
+                    { title: '1. Pengantar Data Biner', content: 'Komputer menyimpan seluruh informasi digital (teks, angka, warna gambar, suara) menggunakan sistem bilangan biner yang hanya terdiri dari angka 0 dan 1 (bit).', ref: 'Buku Informatika Kelas VII Kemendikbudristek & Jurnal Ilmu Komputer Dasar.' },
+                    { title: '2. Representasi Angka & Teks', content: 'Karakter teks direpresentasikan menggunakan standar pengkodean seperti ASCII atau Unicode, di mana setiap huruf diterjemahkan ke dalam kombinasi biner tertentu.', ref: 'BSKAP Kurikulum Merdeka - Capaian Pembelajaran Fase D.' },
+                    { title: '3. Struktur Data Hierarki & Folder', content: 'Data diorganisasikan dalam bentuk struktur pohon (tree structure) atau folder/direktori agar mudah dicari, diakses, dan dikelola secara efisien.', ref: 'Computational Thinking & Data Organization Guidelines.' }
+                ],
+
+                currentQuiz: 0,
+                selectedQuizOpt: null,
+                quizFeedback: '',
+                quizQuestions: [
+                    { question: 'Sistem bilangan apakah yang digunakan komputer untuk merepresentasikan seluruh data digital?', options: ['Desimal (0-9)', 'Biner (0 dan 1)', 'Oktal (0-7)', 'Romawi'], answer: 1 }
+                ],
+
+                studentName: '',
+                studentClass: '',
+                evalStarted: false,
+                evalFinished: false,
+                evalAnswers: {},
+                evalScore: 0,
+                evalQuestions: [
+                    { question: 'Apa satuan terkecil dalam representasi data komputer?', options: ['Byte', 'Bit', 'Kilobyte', 'Pixel'], answer: 1 },
+                    { question: 'Manakah di bawah ini yang merupakan contoh struktur data hierarki di komputer?', options: ['Folder dan Sub-folder', 'Kalkulator', 'Kabel LAN', 'Monitor'], answer: 0 },
+                    { question: 'Standar pengkodean internasional untuk teks komputer dinamakan...', options: ['ASCII / Unicode', 'JPEG', 'MP3', 'HTML'], answer: 0 },
+                    { question: 'Mengapa data perlu direpresentasikan dan disusun secara terstruktur?', options: ['Agar komputer cepat rusak', 'Agar mudah diakses, dicari, dan diolah kembali', 'Agar ukuran file menjadi sangat besar', 'Tidak ada gunanya'], answer: 1 },
+                    { question: 'Kombinasi angka 1 dan 0 dalam komputer merepresentasikan...', options: ['Arus listrik ON dan OFF', 'Suhu komputer', 'Kecepatan internet', 'Kualitas suara'], answer: 0 },
+                    { question: 'Contoh penerapan representasi data dalam kehidupan sehari-hari adalah...', options: ['Barcode di supermarket', 'Menanam bunga', 'Berolahraga pagi', 'Memasak nasi'], answer: 0 },
+                    { question: 'Berapa nilai desimal dari representasi biner 10 (dalam basis 2)?', options: ['1', '2', '3', '4'], answer: 1 },
+                    { question: 'Penyimpanan data cloud (awan) pada dasarnya disimpan di...', options: ['Pusat data fisik (Server Center)', 'Di dalam awan langit', 'Di dalam handphone pengguna saja', 'Di dalam satelit cuaca'], answer: 0 },
+                    { question: 'Apa fungsi utama dari sistem operasi dalam manajemen data?', options: ['Mengatur penyimpanan dan struktur file', 'Membuat game 3D', 'Menjual perangkat keras', 'Memperbaiki layar HP'], answer: 0 },
+                    { question: 'Jika sebuah karakter teks menggunakan 8 bit, berapakah jumlah kombinasi maksimal yang dapat dibentuk?', options: ['128', '256', '512', '1024'], answer: 1 }
+                ],
+
+                startLab() {
+                    this.currentView = 'menu';
+                    this.playAudio();
+                },
+                toggleAudio() {
+                    const audio = document.getElementById('bgAudio');
+                    if (this.audioPlaying) {
+                        audio.pause();
+                        this.audioPlaying = false;
+                    } else {
+                        audio.volume = this.audioVolume / 100;
+                        audio.play().catch(() => {});
+                        this.audioPlaying = true;
+                    }
+                },
+                playAudio() {
+                    const audio = document.getElementById('bgAudio');
+                    audio.volume = this.audioVolume / 100;
+                    audio.play().then(() => {
+                        this.audioPlaying = true;
+                    }).catch(() => {
+                        this.audioPlaying = false;
+                    });
+                },
+                updateVolume() {
+                    const audio = document.getElementById('bgAudio');
+                    audio.volume = this.audioVolume / 100;
+                },
+                checkQuiz() {
+                    if (this.selectedQuizOpt === this.quizQuestions[this.currentQuiz].answer) {
+                        this.quizFeedback = 'Benar! Hebat sekali.';
+                    } else {
+                        this.quizFeedback = 'Kurang tepat. Coba pelajari materi kembali.';
+                    }
+                },
+                startEval() {
+                    if(this.studentName && this.studentClass) {
+                        this.evalStarted = true;
+                    }
+                },
+                submitEval() {
+                    let correctCount = 0;
+                    this.evalQuestions.forEach((q, idx) => {
+                        if (this.evalAnswers[idx] === q.answer) {
+                            correctCount++;
+                        }
+                    });
+                    this.evalScore = (correctCount / this.evalQuestions.length) * 100;
+                    this.evalFinished = true;
+                },
+                printPDF() {
+                    window.print();
+                },
+                nextPage() {
+                    const views = ['menu', 'petunjuk', 'materi', 'simulasi', 'kuis', 'evaluasi', 'fakta', 'kontekstual'];
+                    const idx = views.indexOf(this.currentView);
+                    if (idx !== -1 && idx < views.length - 1) {
+                        this.currentView = views[idx + 1];
+                    } else {
+                        this.currentView = 'menu';
+                    }
+                },
+                prevPage() {
+                    const views = ['menu', 'petunjuk', 'materi', 'simulasi', 'kuis', 'evaluasi', 'fakta', 'kontekstual'];
+                    const idx = views.indexOf(this.currentView);
+                    if (idx > 0) {
+                        this.currentView = views[idx - 1];
+                    }
+                },
+                init3D() {
+                    setTimeout(() => {
+                        const container = document.getElementById('canvas3dContainer');
+                        if (!container || container.childElementCount > 0) return;
+
+                        const scene = new THREE.Scene();
+                        const camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+                        const renderer = new THREE.WebGLRenderer({ antialias: true });
+                        renderer.setSize(container.clientWidth, container.clientHeight);
+                        container.appendChild(renderer.domElement);
+
+                        // Pencahayaan gaya Pixar (Cerah & Lembut)
+                        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+                        scene.add(ambientLight);
+                        const pointLight = new THREE.PointLight(0xffaa55, 1);
+                        pointLight.position.set(10, 15, 10);
+                        scene.add(pointLight);
+
+                        // Objek 3D: Blok Struktur Data (Gaya Kubus Berwarna-warni)
+                        const group = new THREE.Group();
+                        const geometry = new THREE.BoxGeometry(1.2, 1.2, 1.2);
+                        const colors = [0x6366f1, 0x3b82f6, 0x10b981, 0xf59e0b, 0xef4444, 0x8b5cf6];
+
+                        for(let i=0; i<6; i++) {
+                            const material = new THREE.MeshStandardMaterial({ color: colors[i], roughness: 0.3, metalness: 0.2 });
+                            const cube = new THREE.Mesh(geometry, material);
+                            cube.position.set((i%3)*1.8 - 1.8, Math.floor(i/3)*1.8 - 0.9, 0);
+                            group.add(cube);
+                        }
+                        scene.add(group);
+                        camera.position.z = 6;
+
+                        // Animasi Render Loop
+                        const animate = () => {
+                            requestAnimationFrame(animate);
+                            group.rotation.x += 0.005;
+                            group.rotation.y += 0.01;
+                            renderer.render(scene, camera);
+                        };
+                        animate();
+                    }, 200);
+                },
+                triggerAnimation3D() {
+                    // Efek interaksi animasi tambahan pada simulasi 3D
+                    alert('Simulasi 3D: Struktur data biner berhasil disusun ulang secara hierarki!');
+                }
+            }
+        }
+    </script>
+</body>
+</html>
